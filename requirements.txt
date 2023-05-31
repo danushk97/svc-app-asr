@@ -1,0 +1,5 @@
+Cython==0.29.34
+python-dotenv==1.0.0
+nemo-toolkit[all]==1.18.0
+torchaudio==2.0.2 -f https://download.pytorch.org/whl/torch_stable.html
+watchdog
