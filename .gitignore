@@ -5,3 +5,4 @@ DATA*
 nemo_experiments
 models
 *.ipynb
+.DS_Store
