@@ -14,7 +14,7 @@ _services = bootstrap()
 
 @asr_feed_app.post('')
 @error_filter
-def input_feede():
+def input_feed():
     audio = request.files['audio']
     audio_bytes = BytesIO(audio.read())
     _services[constants.ASR_FEED_SERVICE]().feed(audio_bytes, audio.filename)

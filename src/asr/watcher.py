@@ -3,11 +3,14 @@ import os
 import shutil
 import time
 
+
+import requests
 from appscommon.logconfig import init_logging
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from dotenv import load_dotenv
 
+from asr import constants
 from asr.application.speech_recognizer import SpeechRecognizer
 from asr.application.text_classifier import TextClassifier
 from asr.application.ner import Ner
@@ -27,29 +30,42 @@ class InputFeedEvenHandler(FileSystemEventHandler):
         file_path = shutil.move(file_path, f'{Config.ASR_INPUT_PROCESSING_LOCATION}/{file_name}')
         result = {
             'transcription': [],
-            'classification': '',
-            'entities': ''
+            'entities': {
+                'query': '',
+                'result': []
+            }
         }
 
         speech_recognizer.set_audio_detail(file_path)
         data = speech_recognizer.transcribe_audio()[base_file_name]
-        result['transcription'] = [
-            f'{sentence["speaker"]}: {sentence["text"]}' 
-            for sentence in data['sentences']
-        ]
+        
+        response = requests.post('http://127.0.0.1:5000/classify', json={'inputs': data['sentences']})
+        response_data = response.json()['data']
 
+        result['transcription'] = [
+            {
+                constants.SPEAKER: sentence[constants.SPEAKER],
+                constants.TRANSCRIPT: sentence[constants.TEXT],
+                constants.EMOTION: emotion["label"]
+            }
+            for sentence, emotion in zip(data['sentences'], response_data)
+        ]
         # for sentence in data['sentences']:
         #     print(f'{sentence["speaker"]}: {sentence["text"]}')
 
         transcription_list = [data['transcription']]
-        result['classification'] = TextClassifier.predict_labels(transcription_list, text_classifier)
+        # result['classification'] = TextClassifier.predict_labels(transcription_list, text_classifier)
 
         # queries = [
         #     'The Adventures of Tom Sawyer by Mark Twain is an 1876 novel about a young boy growing up along the Mississippi River.'
         # ]
-        result['entities'] = entity_recognizer.add_predictions(transcription_list)
+        result['entities']['query'] = transcription_list[0]
+        for token in entity_recognizer.add_predictions(transcription_list)[0].split():
+            if '[' in token:
+                entity = token.split('[')
+                result['entities']['result'].append((entity[0], entity[1].replace(']', '')))
 
-        
+
         result_location = os.path.join(Config.ASR_RESULTS_LOCATION, file_name)
         os.makedirs(result_location)
         with open(os.path.join(result_location, f'{base_file_name}.json'), 'w') as f:
