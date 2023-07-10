@@ -89,7 +89,7 @@ if __name__ == '__main__':
     init_logging()
     Config.init_config()
     speech_recognizer = SpeechRecognizer()
-    entity_recognizer = Ner.restore_from('ner_en_bert')
+    entity_recognizer = Ner.from_pretrained('ner_en_bert')
     text_classifier = TextClassifier.load_from_checkpoint(Config.TEXT_CLASSIFIER_MODEL_PATH)
     event_handler = InputFeedEvenHandler()
     observer = Observer()
