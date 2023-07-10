@@ -11,7 +11,6 @@ from dotenv import load_dotenv
 
 from asr import constants
 from asr.application.speech_recognizer import SpeechRecognizer
-from asr.application.text_classifier import TextClassifier
 from asr.application.ner import Ner
 from asr.config import Config
 
@@ -90,7 +89,7 @@ if __name__ == '__main__':
     Config.init_config()
     speech_recognizer = SpeechRecognizer()
     entity_recognizer = Ner.from_pretrained('ner_en_bert')
-    text_classifier = TextClassifier.load_from_checkpoint(Config.TEXT_CLASSIFIER_MODEL_PATH)
+    # text_classifier = TextClassifier.load_from_checkpoint(Config.TEXT_CLASSIFIER_MODEL_PATH)
     event_handler = InputFeedEvenHandler()
     observer = Observer()
     observer.schedule(event_handler, Config.ASR_INPUT_FEED_LOCATION, recursive=True)
