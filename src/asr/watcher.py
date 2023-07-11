@@ -11,7 +11,6 @@ from dotenv import load_dotenv
 
 from asr import constants
 from asr.application.speech_recognizer import SpeechRecognizer
-from asr.application.ner import Ner
 from asr.config import Config
 
 
@@ -64,7 +63,9 @@ class InputFeedEvenHandler(FileSystemEventHandler):
         # ]
         start_entity_perf = time.perf_counter()
         result['entities']['query'] = transcription_list[0]
-        for token in entity_recognizer.add_predictions(transcription_list)[0].split():
+        response = requests.post('http://127.0.0.1:6000/ner', json={'inputs': transcription_list})
+        response_data = response.json()['data']
+        for token in response_data[0].split():
             if '[' in token:
                 entity = token.split('[')
                 result['entities']['result'].append((entity[0], entity[1].replace(']', '')))
@@ -88,7 +89,7 @@ if __name__ == '__main__':
     init_logging()
     Config.init_config()
     speech_recognizer = SpeechRecognizer()
-    entity_recognizer = Ner.from_pretrained('ner_en_bert')
+    # entity_recognizer = Ner.from_pretrained('ner_en_bert')
     # text_classifier = TextClassifier.load_from_checkpoint(Config.TEXT_CLASSIFIER_MODEL_PATH)
     event_handler = InputFeedEvenHandler()
     observer = Observer()
