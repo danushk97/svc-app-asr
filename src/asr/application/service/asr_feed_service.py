@@ -25,7 +25,8 @@ class ASRFeedService:
         paths = {
             constants.PENDING: Config.ASR_INPUT_FEED_LOCATION, 
             constants.PROCESSING: Config.ASR_INPUT_PROCESSING_LOCATION, 
-            constants.COMPLETED: Config.ASR_RESULTS_LOCATION
+            constants.COMPLETED: Config.ASR_RESULTS_LOCATION,
+            constants.FAILED: Config.ASR_FAILED_LOCATION
         }
         result = {}
         for status, path in paths.items():

@@ -21,11 +21,12 @@ text_classifier = None
 
 class InputFeedEvenHandler(FileSystemEventHandler):
     def on_created(self, event):
+        start = time.perf_counter()
+        file_path = event.src_path
+        file_name = file_path.rsplit('/', 1)[1]
+        base_file_name, ext = file_name.rsplit('.', 1)
+
         try:
-            start = time.perf_counter()
-            file_path = event.src_path
-            file_name = file_path.rsplit('/', 1)[1]
-            base_file_name, ext = file_name.rsplit('.', 1)
             file_path = shutil.move(file_path, f'{Config.ASR_INPUT_PROCESSING_LOCATION}/{file_name}')
             result = {
                 'transcription': [],

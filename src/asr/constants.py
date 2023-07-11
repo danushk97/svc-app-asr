@@ -4,6 +4,7 @@ AUDIO = 'audio'
 COMPLETED = 'completed'
 
 EMOTION = 'emotion'
+FAILED = 'failed'
 
 INCOMING = 'incoming'
 
