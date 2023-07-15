@@ -21,6 +21,12 @@ class ASRFeedService:
         except AssertionError as err:
             raise ASRServiceException() from err
     
+    def feed_from_link(self, file_link: str) -> None:
+        try:
+            assert SpeechRecognizer.feed_from_link(file_link) is True
+        except AssertionError as err:
+            raise ASRServiceException() from err
+          
     def feed_status(self) -> dict:
         paths = {
             constants.PENDING: Config.ASR_INPUT_FEED_LOCATION, 

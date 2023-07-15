@@ -1,13 +1,15 @@
 import json
+import requests
 from io import BytesIO
 from logging import getLogger
 from os import path
-from time import time
+
 
 from nemo.collections.asr.parts.utils.diarization_utils import OfflineDiarWithASR
 
 from asr.application.utils.asr_decoder_timestamps_utils import MyASRDecoderTimeStamps
 from asr.application.utils.speech_recognizer_utils import build_file_name
+from asr.application.exceptions import SpeechRecognizerException
 from asr.config import Config
 
 
@@ -66,6 +68,30 @@ class SpeechRecognizer(OfflineDiarWithASR):
         file_name = build_file_name(base_file_name, ext)
         with open(path.join(Config.ASR_INPUT_FEED_LOCATION, file_name), 'wb') as f: 
             f.write(audio_bytes.read())
+        logger.info(f'File {file_name} uploaded successfully.')
+
+        return True
+    
+    @staticmethod
+    def feed_from_link(file_link: str) -> bool:
+        file_name = file_link.split("/")[-1]
+        try:
+            response = requests.get(file_link)
+            response.raise_for_status()
+        except requests.RequestException as err:
+            logger.error(err)
+            raise SpeechRecognizerException() from err
+
+        try:
+            with open(
+                path.join(Config.ASR_INPUT_FEED_LOCATION, file_name), 
+                'wb'
+            ) as f: 
+                f.write(response.content)
+        except Exception as err:
+            logger.error(err)
+            raise SpeechRecognizerException() from err
+
         logger.info(f'File {file_name} uploaded successfully.')
 
         return True
