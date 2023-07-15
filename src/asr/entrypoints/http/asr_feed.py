@@ -21,6 +21,19 @@ def input_feed():
     return send_success_response('Input feed was successful.')
 
 
+@asr_feed_app.post('/from-link')
+@error_filter
+def input_feed_from_link():
+    audio = request.json or {}
+    file_link = audio.get('file_link')
+    if not file_link:
+        return {
+            "message": "Please provide file_link"
+        }, 400
+    _services[constants.ASR_FEED_SERVICE]().feed_from_link(file_link)
+    return send_success_response('Input feed was successful.')
+
+
 @asr_feed_app.get('/status')
 @error_filter
 def input_feed_status():
