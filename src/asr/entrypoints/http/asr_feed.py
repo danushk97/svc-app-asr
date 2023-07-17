@@ -39,8 +39,8 @@ def retrieve_feeds_grouped_by_status():
 
 
 @error_filter
-def retrieve_feed_result(feed_id):
-    feed_result = _services[constants.ASR_FEED_SERVICE]().retrieve_feed_result(
+def retrieve_feed(feed_id):
+    feed_result = _services[constants.ASR_FEED_SERVICE]().retrieve_feed(
         feed_id
     )
     return feed_result

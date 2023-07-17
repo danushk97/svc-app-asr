@@ -28,9 +28,9 @@ paths:
           $ref: "#/components/responses/not_found"
         500:
           $ref: "#/components/responses/server_error"
-  /asr/feed/result/{feed_id}:
+  /asr/feed/{feed_id}:
     get:
-      operationId: asr.entrypoints.http.asr_feed.retrieve_feed_result
+      operationId: asr.entrypoints.http.asr_feed.retrieve_feed
       tags:
       - ASR feeds
       summary: Get input feed.
@@ -40,14 +40,14 @@ paths:
           schema:
             type: string
           required: true
-          description: The input file_name
+          description: The input feed id
       responses:
         200:
           description: Successful retrieve operation
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/asr_feed_status"
+                $ref: "#/components/schemas/asr_feed"
         404:
           $ref: "#/components/responses/not_found"
         500:
@@ -138,6 +138,42 @@ components:
             $ref: "#/components/schemas/status_items"
         failed:
             $ref: "#/components/schemas/status_items"
+    asr_feed:
+      type: object
+      properties:
+        id:
+          type: string
+        filename:
+          type: string
+        result:
+          type: object
+          properties:
+            transcript:
+              type: string
+            entities:
+              type: array
+              items:
+                type: array
+                items:
+                  type: string
+            overall_sentiment:
+              type: object
+              properties:
+                label:
+                  type: string
+                score:
+                  type: integer
+            conversation:
+              type: array
+              items:
+                type: object
+                properties:
+                  speaker:
+                    type: string
+                  text:
+                    type: string
+                  emotion:
+                    type: string
     error_detail:
       properties:
         title:

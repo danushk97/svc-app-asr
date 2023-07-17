@@ -44,7 +44,7 @@ class ASRFeedService:
 
         return result
 
-    def retrieve_feed_result(self, feed_id) -> dict:
+    def retrieve_feed(self, feed_id) -> dict:
         if feed_id not in os.listdir(Config.ASR_RESULTS_LOCATION):
             message = 'Invalid file name.'
             raise ASRServiceException(
