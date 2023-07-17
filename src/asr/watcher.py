@@ -10,8 +10,9 @@ from watchdog.events import FileSystemEventHandler
 from dotenv import load_dotenv
 
 from asr import constants
-from asr.application.speech_recognizer import SpeechRecognizer
 from asr.config import Config
+from asr.model.diarizer import diarize
+from asr.domain.asr_feed import ASRFeed, ASRFeedResult
 
 
 speech_recognizer = None
@@ -23,81 +24,93 @@ class InputFeedEvenHandler(FileSystemEventHandler):
     def on_created(self, event):
         start = time.perf_counter()
         file_path = event.src_path
-        file_name = file_path.rsplit('/', 1)[1]
-        base_file_name, ext = file_name.rsplit('.', 1)
+        if not os.path.isdir(file_path):
+            return
+
+        feed_id = file_path.rsplit('/', 1)[1]
+        file_name = os.listdir(file_path)[0]
 
         try:
-            file_path = shutil.move(file_path, f'{Config.ASR_INPUT_PROCESSING_LOCATION}/{file_name}')
-            result = {
-                'transcription': [],
-                'entities': {
-                    'query': '',
-                    'result': []
-                }
-            }
+            file_path = shutil.move(
+                file_path,
+                Config.ASR_INPUT_PROCESSING_LOCATION
+            )
+            feed_result = ASRFeedResult()
 
             start_asr_perf = time.perf_counter()
-            speech_recognizer.set_audio_detail(file_path)
-            data = speech_recognizer.transcribe_audio()[base_file_name]
-            print(f'ASR took {time.perf_counter() - start_asr_perf} seconds')
+            diarizer_result = diarize(os.path.join(
+                file_path, file_name
+            ))
+            print(f'Diarizer took {time.perf_counter() - start_asr_perf} seconds')
+
+            feed_result.transcript = diarizer_result['transcript']
 
             start_emotion_perf = time.perf_counter()
-            response = requests.post('http://127.0.0.1:5000/classify', json={'inputs': data['sentences']})
-            response_data = response.json()['data']
+            response = requests.post(
+                'http://127.0.0.1:5000/classify',
+                json=diarizer_result
+            )
+            classifier_result = response.json()
             print(f'Emotion classifier took {time.perf_counter() - start_emotion_perf} seconds')
 
-            result['transcription'] = [
+            feed_result.conversation = [
                 {
                     constants.SPEAKER: sentence[constants.SPEAKER],
                     constants.TRANSCRIPT: sentence[constants.TEXT],
                     constants.EMOTION: emotion["label"]
                 }
-                for sentence, emotion in zip(data['sentences'], response_data)
+                for sentence, emotion in zip(
+                    diarizer_result['conversation'],
+                    classifier_result['emotions']
+                )
             ]
-            # for sentence in data['sentences']:
-            #     print(f'{sentence["speaker"]}: {sentence["text"]}')
+            feed_result.overall_sentiment = \
+                classifier_result['overall_sentiment']
 
-            transcription_list = [data['transcription']]
-            # result['classification'] = TextClassifier.predict_labels(transcription_list, text_classifier)
-
-            # queries = [
-            #     'The Adventures of Tom Sawyer by Mark Twain is an 1876 novel about a young boy growing up along the Mississippi River.'
-            # ]
             start_entity_perf = time.perf_counter()
-            result['entities']['query'] = transcription_list[0]
-            response = requests.post('http://127.0.0.1:6000/ner', json={'inputs': transcription_list})
-            response_data = response.json()['data']
+            response = requests.post(
+                'http://127.0.0.1:6000/ner',
+                json={'inputs': [feed_result.transcript]}
+            )
+            response_data = response.json()['entities']
             for token in response_data[0].split():
                 if '[' in token:
                     entity = token.split('[')
-                    result['entities']['result'].append((entity[0], entity[1].replace(']', '')))
+                    feed_result.entities.append(
+                        (entity[0], entity[1].replace(']', ''))
+                    )
             print(f'Entity extraction took {time.perf_counter() - start_entity_perf} seconds')
 
-            result_location = os.path.join(Config.ASR_RESULTS_LOCATION, file_name)
-            os.makedirs(result_location)
-            with open(os.path.join(result_location, f'{base_file_name}.json'), 'w') as f:
-                json.dump(result, f)
-            shutil.move(file_path, f'{result_location}/{file_name}')
+            shutil.move(file_path, Config.ASR_RESULTS_LOCATION)
+            result_location = os.path.join(
+                Config.ASR_RESULTS_LOCATION,
+                feed_id
+            )
+            asr_feed = ASRFeed(feed_id, file_name, feed_result)
+            with open(
+                os.path.join(result_location, f'{feed_id}.json'),
+                'w'
+            ) as f:
+                json.dump(asr_feed.to_dict(), f)
 
-            print(f'{file_name} Processed successfully.It took {time.perf_counter() - start} seconds')
-            # for query, result in zip(queries, results):
-            #     print()
-            #     print(f'Query : {query}')
-            #     print(f'Result: {result.strip()}\n')
+            print(f'{feed_id} Processed successfully.It took {time.perf_counter() - start} seconds')
+
         except Exception as e:
-            print(f'Failed to process {base_file_name} with error: {e}')
-            shutil.move(file_path, f'{Config.ASR_FAILED_LOCATION}/{file_name}')
+            print(f'Failed to process {feed_id} with error: {e}')
+            shutil.move(file_path, f'{Config.ASR_FAILED_LOCATION}')
+
 
 if __name__ == '__main__':
     load_dotenv()
     init_logging()
     Config.init_config()
-    speech_recognizer = SpeechRecognizer()
-    # entity_recognizer = Ner.from_pretrained('ner_en_bert')
-    # text_classifier = TextClassifier.load_from_checkpoint(Config.TEXT_CLASSIFIER_MODEL_PATH)
     event_handler = InputFeedEvenHandler()
     observer = Observer()
-    observer.schedule(event_handler, Config.ASR_INPUT_FEED_LOCATION, recursive=True)
+    observer.schedule(
+        event_handler,
+        Config.ASR_INPUT_FEED_LOCATION,
+        recursive=True
+    )
     observer.start()
     print("Listening for feeds....")
     try:
