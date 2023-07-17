@@ -1,0 +1,172 @@
+openapi: "3.0.0"
+info:
+  version: v3
+  title: crypto-currency market summary API.
+  contact:
+    name: Danush Kumar
+    email: danushk97@gmail.com
+
+paths:
+  /health-check:
+    get:
+      operationId: asr.entrypoints.http.health_check.health_check
+      tags:
+      - Health Check
+      summary: Ensures the application"s health
+      responses:
+        200:
+          description: Application is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: up
+        404:
+          $ref: "#/components/responses/not_found"
+        500:
+          $ref: "#/components/responses/server_error"
+  /asr/feed/result/{feed_id}:
+    get:
+      operationId: asr.entrypoints.http.asr_feed.retrieve_feed_result
+      tags:
+      - ASR feeds
+      summary: Get input feed.
+      parameters:
+        - in: path
+          name: feed_id
+          schema:
+            type: string
+          required: true
+          description: The input file_name
+      responses:
+        200:
+          description: Successful retrieve operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/asr_feed_status"
+        404:
+          $ref: "#/components/responses/not_found"
+        500:
+          $ref: "#/components/responses/server_error"
+  /asr/feeds/group-by-status:
+    get:
+      operationId: asr.entrypoints.http.asr_feed.retrieve_feeds_grouped_by_status
+      tags:
+      - ASR feeds
+      summary: Get all feeds status
+      responses:
+        200:
+          description: Successful retrieve operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/asr_feed_status"
+        404:
+          $ref: "#/components/responses/not_found"
+        500:
+          $ref: "#/components/responses/server_error"
+  /asr/feed:
+    post:
+      operationId: asr.entrypoints.http.asr_feed.feed_input
+      tags:
+      - ASR feeds
+      summary: Feed input to ASR using the target url of the input.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required:
+                - file
+      responses:
+        200:
+          $ref: "#/components/responses/general_ok_response"
+        404:
+          $ref: "#/components/responses/not_found"
+        500:
+          $ref: "#/components/responses/server_error"
+  /asr/feed/from-urls:
+    post:
+      operationId: asr.entrypoints.http.asr_feed.feed_input_from_urls
+      tags:
+      - ASR feeds
+      summary: Feed input to ASR using the target url of the input.
+      requestBody:
+        description: A list of url pointing to the input audio files
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                audio_urls:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - audio_urls
+      responses:
+        200:
+          $ref: "#/components/responses/general_ok_response"
+        404:
+          $ref: "#/components/responses/not_found"
+        500:
+          $ref: "#/components/responses/server_error"
+components:
+  schemas:
+    status_items:
+      type: array
+      items:
+        type: string
+    asr_feed_status:
+      type: object
+      properties:
+        pending:
+            $ref: "#/components/schemas/status_items"
+        processing:
+            $ref: "#/components/schemas/status_items"
+        completed:
+            $ref: "#/components/schemas/status_items"
+        failed:
+            $ref: "#/components/schemas/status_items"
+    error_detail:
+      properties:
+        title:
+          type: string
+        detail:
+          type: string
+        about:
+          type: integer
+        status:
+          type: string
+  responses:
+    not_found:
+      description: Entity not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error_detail"
+    server_error:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error_detail"
+    general_ok_response:
+      description: Request was successful.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string

@@ -1,5 +1,13 @@
-Cython==0.29.34
 python-dotenv==1.0.0
-nemo-toolkit[all]==1.18.0
+# nemo-toolkit[all]==1.18.0
 torchaudio==2.0.2 -f https://download.pytorch.org/whl/torch_stable.html
 watchdog
+wget
+nemo_toolkit[asr]==1.17.0
+transformers>=4.26.1
+faster-whisper==0.5.1
+git+https://github.com/m-bain/whisperX.git@4cb167a225c0ebaea127fd6049abfaa3af9f8bb4
+git+https://github.com/facebookresearch/demucs#egg=demucs
+deepmultilingualpunctuation
+connexion
+connexion[swagger-ui]
