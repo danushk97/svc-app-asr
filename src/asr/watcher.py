@@ -5,9 +5,10 @@ import time
 
 import requests
 from appscommon.logconfig import init_logging
+from dotenv import load_dotenv
+from nemo.collections.nlp.models import TokenClassificationModel
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-from dotenv import load_dotenv
 
 from asr import constants
 from asr.config import Config
@@ -68,12 +69,13 @@ class InputFeedEvenHandler(FileSystemEventHandler):
                 classifier_result['overall_sentiment']
 
             start_entity_perf = time.perf_counter()
-            response = requests.post(
-                'http://127.0.0.1:6000/ner',
-                json={'inputs': [feed_result.transcript]}
-            )
-            response_data = response.json()['entities']
-            for token in response_data[0].split():
+            # response = requests.post(
+            #     'http://127.0.0.1:6000/ner',
+            #     json={'inputs': [feed_result.transcript]}
+            # )
+            # response_data = response.json()['entities']
+            entities = entity_recognizer.add_predictions([feed_result.transcript])[0]
+            for token in entities.split():
                 if '[' in token:
                     entity = token.split('[')
                     feed_result.entities.append(
@@ -104,6 +106,10 @@ if __name__ == '__main__':
     load_dotenv()
     init_logging()
     Config.init_config()
+
+    entity_recognizer = TokenClassificationModel.from_pretrained("ner_en_bert")
+    # entity_recognizer.cfg['dataset']['num_workers'] = 0
+
     event_handler = InputFeedEvenHandler()
     observer = Observer()
     observer.schedule(
