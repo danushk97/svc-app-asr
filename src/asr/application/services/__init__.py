@@ -1,4 +1,4 @@
-from asr.application.service.asr_feed_service import ASRFeedService
+from asr.application.services.asr_feed_service import ASRFeedService
 from asr import constants
 
 SERVICES = {

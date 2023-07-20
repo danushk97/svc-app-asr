@@ -71,7 +71,7 @@ paths:
           $ref: "#/components/responses/server_error"
   /asr/feed:
     post:
-      operationId: asr.entrypoints.http.asr_feed.feed_input
+      operationId: asr.entrypoints.http.asr_feed.feed_to_asr
       tags:
       - ASR feeds
       summary: Feed input to ASR using the target url of the input.
@@ -96,7 +96,7 @@ paths:
           $ref: "#/components/responses/server_error"
   /asr/feed/from-urls:
     post:
-      operationId: asr.entrypoints.http.asr_feed.feed_input_from_urls
+      operationId: asr.entrypoints.http.asr_feed.feed_to_asr_from_urls
       tags:
       - ASR feeds
       summary: Feed input to ASR using the target url of the input.
