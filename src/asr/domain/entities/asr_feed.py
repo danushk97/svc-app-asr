@@ -8,7 +8,7 @@ from asr.domain.entities.entity import Entity
 
 @dataclass
 class ASRFeedResult:
-    transcript: str = ''
+    transcript: str = ""
     conversation: list = field(default_factory=list)
     entities: list = field(default_factory=list)
     overall_sentiment: dict = field(default_factory=dict)

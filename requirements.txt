@@ -12,3 +12,5 @@ deepmultilingualpunctuation
 connexion
 connexion[swagger-ui]
 numpy==1.23.0
+pymongo==4.4.1
+appscommon==0.0.2
