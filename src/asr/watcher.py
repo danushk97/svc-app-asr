@@ -1,9 +1,8 @@
-import json
-import os
-import shutil
 import time
+import os
 
 import requests
+from bson import ObjectId
 from appscommon.logconfig import init_logging
 from dotenv import load_dotenv
 from nemo.collections.nlp.models import TokenClassificationModel
@@ -13,7 +12,9 @@ from watchdog.events import FileSystemEventHandler
 from asr import constants
 from asr.config import Config
 from asr.model.diarizer import diarize
-from asr.domain.asr_feed import ASRFeed, ASRFeedResult
+from asr.domain.entities.asr_feed import ASRFeedResult
+from asr.adapters.datasources.mongo import MongoClient
+from asr.adapters.respositories.asr_feed_repository import ASRFeedRepository
 
 
 speech_recognizer = None
@@ -25,24 +26,27 @@ class InputFeedEvenHandler(FileSystemEventHandler):
     def on_created(self, event):
         start = time.perf_counter()
         file_path = event.src_path
-        if not os.path.isdir(file_path):
-            return
 
-        feed_id = file_path.rsplit('/', 1)[1]
-        file_name = os.listdir(file_path)[0]
+        incoming_file_name = file_path.rsplit('/', 1)[1]
+        feed_id, file_name = incoming_file_name.split("_", 1)
+        asr_feeds = ASRFeedRepository(MongoClient.get_connection(
+            Config.MONGO_DB_NAME
+        ))
 
         try:
-            file_path = shutil.move(
-                file_path,
-                Config.ASR_INPUT_PROCESSING_LOCATION
+            asr_feeds.find_and_update_feed_status(
+                ObjectId(feed_id),
+                constants.PROCESSING
             )
+
             feed_result = ASRFeedResult()
 
             start_asr_perf = time.perf_counter()
-            diarizer_result = diarize(os.path.join(
-                file_path, file_name
-            ))
-            print(f'Diarizer took {time.perf_counter() - start_asr_perf} seconds')
+            diarizer_result = diarize(file_path)
+            print(
+                f'Diarizer took {time.perf_counter() - start_asr_perf}'
+                ' seconds'
+            )
 
             feed_result.transcript = diarizer_result['transcript']
 
@@ -52,7 +56,10 @@ class InputFeedEvenHandler(FileSystemEventHandler):
                 json=diarizer_result
             )
             classifier_result = response.json()
-            print(f'Emotion classifier took {time.perf_counter() - start_emotion_perf} seconds')
+            print(
+                'Emotion classifier took'
+                f'{time.perf_counter() - start_emotion_perf} seconds'
+            )
 
             feed_result.conversation = [
                 {
@@ -69,37 +76,37 @@ class InputFeedEvenHandler(FileSystemEventHandler):
                 classifier_result['overall_sentiment']
 
             start_entity_perf = time.perf_counter()
-            # response = requests.post(
-            #     'http://127.0.0.1:6000/ner',
-            #     json={'inputs': [feed_result.transcript]}
-            # )
-            # response_data = response.json()['entities']
-            entities = entity_recognizer.add_predictions([feed_result.transcript])[0]
+            entities = entity_recognizer.add_predictions(
+                [feed_result.transcript]
+            )[0]
             for token in entities.split():
                 if '[' in token:
                     entity = token.split('[')
                     feed_result.entities.append(
                         (entity[0], entity[1].replace(']', ''))
                     )
-            print(f'Entity extraction took {time.perf_counter() - start_entity_perf} seconds')
-
-            shutil.move(file_path, Config.ASR_RESULTS_LOCATION)
-            result_location = os.path.join(
-                Config.ASR_RESULTS_LOCATION,
-                feed_id
+            print(
+                f'Entity extraction took '
+                f'{time.perf_counter() - start_entity_perf} seconds'
             )
-            asr_feed = ASRFeed(feed_id, file_name, feed_result)
-            with open(
-                os.path.join(result_location, f'{feed_id}.json'),
-                'w'
-            ) as f:
-                json.dump(asr_feed.to_dict(), f)
 
-            print(f'{feed_id} Processed successfully.It took {time.perf_counter() - start} seconds')
+            asr_feeds.find_and_update_feed_result_and_status(
+                ObjectId(feed_id), feed_result, constants.COMPLETED
+            )
+            print(
+                f'{feed_id} Processed successfully.It took '
+                f'{time.perf_counter() - start} seconds'
+            )
 
         except Exception as e:
             print(f'Failed to process {feed_id} with error: {e}')
-            shutil.move(file_path, f'{Config.ASR_FAILED_LOCATION}')
+            asr_feeds.find_and_update_feed_status(
+                ObjectId(feed_id),
+                constants.FAILED
+            )
+        finally:
+            os.remove(file_path)
+            print(f"Removed File: {file_path}")
 
 
 if __name__ == '__main__':
@@ -108,7 +115,7 @@ if __name__ == '__main__':
     Config.init_config()
 
     entity_recognizer = TokenClassificationModel.from_pretrained("ner_en_bert")
-    # entity_recognizer.cfg['dataset']['num_workers'] = 0
+    entity_recognizer.cfg['dataset']['num_workers'] = 0
 
     event_handler = InputFeedEvenHandler()
     observer = Observer()

@@ -1,7 +1,7 @@
 temp
 steps.txt
-DATA*
 .ipy*
+DATA_DIR
 nemo_experiments
 models
 *.ipynb
