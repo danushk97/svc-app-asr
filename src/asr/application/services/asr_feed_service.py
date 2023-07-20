@@ -37,12 +37,11 @@ class ASRFeedService:
         asr_result = ASRFeedResult()
         asr_feed = ASRFeed(file_name, constants.PENDING, asr_result, source)
 
+        self.__save_feed(asr_feed)
         self.__asr_feed_upload_service.upload(
             feed_content,
             f"{asr_feed._id}_{file_name}"
         )
-
-        self.__save_feed(asr_feed)
 
         return asr_feed
 
