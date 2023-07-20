@@ -89,7 +89,11 @@ paths:
                 - file
       responses:
         200:
-          $ref: "#/components/responses/general_ok_response"
+          description: Successful Feed upload.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/asr_feed"
         404:
           $ref: "#/components/responses/not_found"
         500:
@@ -116,7 +120,16 @@ paths:
                 - audio_urls
       responses:
         200:
-          $ref: "#/components/responses/general_ok_response"
+          description: Successful Feed upload.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  asr_feeds:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/asr_feed"
         404:
           $ref: "#/components/responses/not_found"
         500:
@@ -126,7 +139,20 @@ components:
     status_items:
       type: array
       items:
-        type: string
+        type: object
+        properties:
+          _id:
+            type: string
+          filename:
+            type: string
+          source:
+            type: string
+          status:
+            type: string
+          created_at:
+            type: string
+          updated_at:
+            type: string
     asr_feed_status:
       type: object
       properties:
@@ -141,9 +167,17 @@ components:
     asr_feed:
       type: object
       properties:
-        id:
+        _id:
           type: string
         filename:
+          type: string
+        source:
+          type: string
+        created_at:
+          type: string
+        updated_at:
+          type: string
+        status:
           type: string
         result:
           type: object

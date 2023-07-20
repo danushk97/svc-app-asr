@@ -32,7 +32,7 @@ class ASRFeedService:
         self,
         feed_content: BinaryIO,
         file_name: str,
-        source=''
+        source=""
     ) -> ASRFeed:
         asr_result = ASRFeedResult()
         asr_feed = ASRFeed(file_name, constants.PENDING, asr_result, source)
