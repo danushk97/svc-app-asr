@@ -11,7 +11,7 @@ logger = getLogger(__name__)
 
 class ASRFeedUploadService(AbstractASRFeedUploadService):
     def __init__(
-        self, feed_location: str = Config.ASR_INPUT_FEED_LOCATION
+        self, feed_location: str = Config.ASR_FEED_LOCATION
     ) -> None:
         self.feed_location = feed_location
 
