@@ -28,6 +28,18 @@ class ASRFeedService:
     def __save_feed(self, asr_feed: ASRFeed):
         self.__asr_feeds.add(asr_feed)
 
+    def _upload_feed_content_and_save_feed(
+        self,
+        feed_content: BinaryIO,
+        file_name: str,
+        asr_feed: ASRFeed
+    ):
+        self.__save_feed(asr_feed)
+        self.__asr_feed_upload_service.upload(
+            feed_content,
+            f"{asr_feed._id}_{file_name}"
+        )
+
     def upload_feed_content_and_save_feed(
         self,
         feed_content: BinaryIO,
@@ -37,10 +49,10 @@ class ASRFeedService:
         asr_result = ASRFeedResult()
         asr_feed = ASRFeed(file_name, constants.PENDING, asr_result, source)
 
-        self.__save_feed(asr_feed)
-        self.__asr_feed_upload_service.upload(
+        self._upload_feed_content_and_save_feed(
             feed_content,
-            f"{asr_feed._id}_{file_name}"
+            file_name,
+            asr_feed
         )
 
         return asr_feed

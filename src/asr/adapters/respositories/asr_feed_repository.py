@@ -8,16 +8,16 @@ from asr.domain.repositories.abstract_asr_feed_respository import \
 
 class ASRFeedRepository(AbstractASRFeedRepository):
     def __init__(self, connection=None) -> None:
-        self.__connection = connection.asr_feeds
+        self._connection = connection.asr_feeds
 
     def add(self, asr_feed: ASRFeed) -> str:
-        return self.__connection.insert_one(asr_feed.to_dict()).inserted_id
+        return self._connection.insert_one(asr_feed.to_dict()).inserted_id
 
     def find(self, id: str):
-        return self.__connection.find_one({constants._ID: id})
+        return self._connection.find_one({constants._ID: id})
 
     def list(self):
-        return [data for data in self.__connection.find()]
+        return [data for data in self._connection.find()]
 
     def list_by_status(self):
         pipeline = [
@@ -37,7 +37,7 @@ class ASRFeedRepository(AbstractASRFeedRepository):
                 }
             }
         ]
-        result_set = self.__connection.aggregate(pipeline)
+        result_set = self._connection.aggregate(pipeline)
         feeds_by_stautus = {
             constants.COMPLETED: [],
             constants.PENDING: [],
@@ -53,7 +53,7 @@ class ASRFeedRepository(AbstractASRFeedRepository):
         return feeds_by_stautus
 
     def find_and_update_feed_result_and_status(self, feed_id, result, status):
-        self.__connection.update_one({"_id": feed_id}, {
+        self._connection.update_one({"_id": feed_id}, {
             "$set": {
                 constants.RESULT: result.to_dict(),
                 constants.STATUS: status,
@@ -62,7 +62,7 @@ class ASRFeedRepository(AbstractASRFeedRepository):
         }, upsert=False)
 
     def find_and_update_feed_status(self, feed_id, status):
-        self.__connection.update_one({"_id": feed_id}, {
+        self._connection.update_one({"_id": feed_id}, {
             "$set": {
                 constants.STATUS: status,
                 constants.UPDATED_AT: datetime.utcnow()

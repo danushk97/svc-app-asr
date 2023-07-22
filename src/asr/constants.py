@@ -1,4 +1,5 @@
 ASR_FEED_SERVICE = "asr_feed_service"
+ASR_TRNASLATE_FEED_SERVICE = "asr_translate_feed_service"
 ASR_FEED = "asr_feed"
 
 AUDIO = "audio"
