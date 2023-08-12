@@ -3,7 +3,7 @@ import wget
 import json
 import shutil
 import platform
-
+import bson
 
 from omegaconf import OmegaConf
 
@@ -265,7 +265,11 @@ def get_speaker_aware_transcript(sentences_speaker_mapping):
     for sentence_dict in sentences_speaker_mapping:
         sentences.append(
             {
-                "speaker": sentence_dict["speaker"],
+                "time": format_timestamp(sentence_dict["start_time"]),
+                "id": bson.ObjectId(),
+                "start": seconds_from_millisecond(sentence_dict["start_time"]),
+                "end": seconds_from_millisecond(sentence_dict["end_time"]),
+                "from": sentence_dict["speaker"],
                 "text": sentence_dict["text"]
             }
         )
@@ -275,6 +279,10 @@ def get_speaker_aware_transcript(sentences_speaker_mapping):
         'conversation': sentences,
         'transcript': transcript
     }
+
+
+def seconds_from_millisecond(millisecond):
+    return millisecond / 1000
 
 
 def format_timestamp(
@@ -287,7 +295,6 @@ def format_timestamp(
 
     minutes = milliseconds // 60_000
     milliseconds -= minutes * 60_000
-
     seconds = milliseconds // 1_000
     milliseconds -= seconds * 1_000
 
@@ -312,6 +319,30 @@ def write_srt(transcript, file):
             file=file,
             flush=True,
         )
+
+
+def build_conversation(messages):
+    conversations = []
+    conversation = {}
+
+    for message in messages:
+        message_from = message.pop("from")
+        time = message.pop("time")
+
+        if conversation and message_from != conversation["from"]:
+            conversations.append(conversation)
+            conversation = {}
+
+        if conversation:
+            conversation["message"].append(message)
+        else:
+            conversation["id"] = bson.ObjectId()
+            conversation["from"] = message_from
+            conversation["time"] = time
+            conversation["avatar"] = ""
+            conversation["message"] = [message]
+
+    return conversations
 
 
 def cleanup(path: str):
