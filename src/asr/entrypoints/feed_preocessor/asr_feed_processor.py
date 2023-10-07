@@ -28,7 +28,7 @@ def asr_feed_processor(feed_id: ObjectId, file_path: str, entity_recognizer):
         feed_result.transcript = diarizer_result['transcript']
         start_emotion_perf = time.perf_counter()
         response = requests.post(
-            'http://127.0.0.1:5000/classify',
+            'http://127.0.0.1:8000/classify',
             json={
                 'transcript': diarizer_result['transcript'],
                 'messages': [
