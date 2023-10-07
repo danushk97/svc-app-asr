@@ -8,7 +8,7 @@ from asr import constants
 from asr.adapters.respositories.asr_feed_repository import ASRFeedRepository
 from asr.adapters.datasources.mongo import MongoClient
 from asr.domain.entities.asr_feed import ASRFeedResult
-from asr.model.diarizer import diarize
+from asr.model.diarizer import diarize, utils
 
 
 def asr_feed_processor(feed_id: ObjectId, file_path: str, entity_recognizer):
@@ -28,8 +28,14 @@ def asr_feed_processor(feed_id: ObjectId, file_path: str, entity_recognizer):
         feed_result.transcript = diarizer_result['transcript']
         start_emotion_perf = time.perf_counter()
         response = requests.post(
-            'http://127.0.0.1:5000/classify',
-            json=diarizer_result
+            'http://127.0.0.1:8000/classify',
+            json={
+                'transcript': diarizer_result['transcript'],
+                'messages': [
+                    data['text']
+                    for data in diarizer_result['conversation']
+                ]
+            }
         )
         classifier_result = response.json()
         print(
@@ -38,15 +44,17 @@ def asr_feed_processor(feed_id: ObjectId, file_path: str, entity_recognizer):
         )
         feed_result.conversation = [
             {
-                constants.SPEAKER: sentence[constants.SPEAKER],
-                constants.TRANSCRIPT: sentence[constants.TEXT],
-                constants.EMOTION: emotion["label"]
+                **sentence,
+                constants.EMOTION: emotion
             }
             for sentence, emotion in zip(
                 diarizer_result['conversation'],
                 classifier_result['emotions']
             )
         ]
+        feed_result.conversation = utils.build_conversation(
+            feed_result.conversation
+        )
         feed_result.overall_sentiment = \
             classifier_result['overall_sentiment']
         start_entity_perf = time.perf_counter()
