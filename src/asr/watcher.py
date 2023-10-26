@@ -1,7 +1,6 @@
 import time
 import platform
 
-from bson import ObjectId
 from appscommon.logconfig import init_logging
 from dotenv import load_dotenv
 from nemo.collections.nlp.models import TokenClassificationModel
@@ -9,34 +8,54 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 from asr.config import Config
-from asr.entrypoints.feed_preocessor.asr_feed_processor import \
-    asr_feed_processor
-from asr.entrypoints.feed_preocessor.asr_translate_feed_processor import \
-    asr_translate_feed_processor
+from asr.adapters.respositories.asr_feed_repository import ASRFeedRepository
+from asr.adapters.datasources.mongo import MongoClient
+from asr.domain.entities.asr_feed import ASRFeed, ASRFeedResult
+from asr import constants
 
 
 speech_recognizer = None
 entity_recognizer = None
 text_classifier = None
+db_connection = None
+cdr_collection = None
 
 
 class ASRFeedHandler(FileSystemEventHandler):
     def on_created(self, event):
         try:
+            asr_feeds = ASRFeedRepository(MongoClient.get_connection())
             file_path = event.src_path
             root_path, incoming_file_name = file_path.rsplit('/', 1)
-            feed_id = incoming_file_name.split("_", 1)[0]
-            feed_id = ObjectId(feed_id)
-
-            if root_path == Config.ASR_FEED_LOCATION:
-                asr_feed_processor(
-                    feed_id,
-                    file_path,
-                    entity_recognizer
-                )
-            elif root_path == Config.ASR_TRANSLATE_FEED_LOCATION:
-                asr_translate_feed_processor(feed_id, file_path)
+            feed_id = incoming_file_name.split(".", 1)[0]
+            skill = cdr_collection.find_one({
+                "uuid": feed_id
+            })['skill']
+            asr_feed = ASRFeed(
+                file_path,
+                constants.PENDING,
+                ASRFeedResult(),
+                feed_id,
+                skill
+            )
+            asr_feeds.add(asr_feed)
+            cdr_collection.update_one(
+                {
+                    'uuid': feed_id
+                },
+                {
+                    '$set': {'asr_notify': "success"}
+                }
+            )
         except Exception as e:
+            cdr_collection.update_one(
+                {
+                    '_id': feed_id
+                },
+                {
+                    '$set': {'asr_notify': "failed"}
+                }
+            )
             print(f"Failed to process feed with exception: {e}")
 
 
@@ -44,6 +63,8 @@ if __name__ == '__main__':
     load_dotenv()
     init_logging()
     Config.init_config()
+    db_connection = MongoClient.get_connection()
+    cdr_collection = db_connection.get_collection('cdr')
 
     entity_recognizer = TokenClassificationModel.from_pretrained("ner_en_bert")
     if platform.system() == "Darwin":

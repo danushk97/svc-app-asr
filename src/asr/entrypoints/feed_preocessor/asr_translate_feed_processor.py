@@ -38,6 +38,3 @@ def asr_translate_feed_processor(feed_id: ObjectId, file_path: str):
     except Exception as e:
         print(f'Failed to process {feed_id} with error: {e}')
         asr_feeds.find_and_update_feed_status(feed_id, constants.FAILED)
-    finally:
-        os.remove(file_path)
-        print(f"Removed File: {file_path}")

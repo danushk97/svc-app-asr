@@ -25,7 +25,7 @@ class ASRFeedService:
         self.__http_client = http_client
         self.__asr_feed_upload_service = asr_feed_upload_service
 
-    def __save_feed(self, asr_feed: ASRFeed):
+    def save_feed(self, asr_feed: ASRFeed):
         self.__asr_feeds.add(asr_feed)
 
     def _upload_feed_content_and_save_feed(
@@ -34,7 +34,7 @@ class ASRFeedService:
         file_name: str,
         asr_feed: ASRFeed
     ):
-        self.__save_feed(asr_feed)
+        self.save_feed(asr_feed)
         self.__asr_feed_upload_service.upload(
             feed_content,
             f"{asr_feed._id}_{file_name}"
