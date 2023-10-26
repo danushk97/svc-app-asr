@@ -86,7 +86,7 @@ def main():
 
 
 schedule.every(30).minutes.do(main)
-
+main()
 
 while True:
     schedule.run_pending()
