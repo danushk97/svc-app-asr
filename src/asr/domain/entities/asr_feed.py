@@ -22,6 +22,8 @@ class ASRFeed(Entity):
     filename: str
     status: str
     result: ASRFeedResult
+    cdr_id: str
+    skill: str
     source: str = ''
     _id: str = field(default_factory=ObjectId)
     created_at: datetime = field(default_factory=datetime.utcnow)

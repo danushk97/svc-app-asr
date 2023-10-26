@@ -1,4 +1,3 @@
-import os
 import time
 
 import requests
@@ -16,7 +15,10 @@ def asr_feed_processor(feed_id: ObjectId, file_path: str, entity_recognizer):
 
     try:
         start = time.perf_counter()
-        asr_feeds.find_and_update_feed_status(feed_id, constants.PROCESSING)
+        asr_feeds.find_and_update_feed_status(
+            feed_id,
+            constants.PROCESSING
+        )
 
         feed_result = ASRFeedResult()
         start_asr_perf = time.perf_counter()
@@ -81,6 +83,3 @@ def asr_feed_processor(feed_id: ObjectId, file_path: str, entity_recognizer):
     except Exception as e:
         print(f'Failed to process {feed_id} with error: {e}')
         asr_feeds.find_and_update_feed_status(feed_id, constants.FAILED)
-    finally:
-        os.remove(file_path)
-        print(f"Removed File: {file_path}")
