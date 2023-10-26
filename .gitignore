@@ -9,3 +9,4 @@ models
 __pycache__
 feeds
 results
+temp_outputs
