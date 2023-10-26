@@ -12,38 +12,24 @@ from nemo.collections.nlp.models import TokenClassificationModel
 from asr.config import Config
 from asr.entrypoints.feed_preocessor.asr_feed_processor import \
     asr_feed_processor
+from asr.entrypoints.feed_preocessor.asr_translate_feed_processor import \
+    asr_translate_feed_processor
 
 
+load_dotenv('schedule.env')
 init_logging()
 Config.init_config()
-load_dotenv('schedule.env')
 logger = getLogger(__name__)
-speech_recognizer = None
-entity_recognizer = None
-text_classifier = None
 entity_recognizer = TokenClassificationModel.from_pretrained("ner_en_bert")
 if platform.system() == "Darwin":
     entity_recognizer.cfg['dataset']['num_workers'] = 0
-
 db_connection = MongoClient(
     environ.get('MONGO_DB_URL')
-)[environ.get('DB_NAME')]
+)[environ.get('MONGO_DB_NAME')]
 
 
-cdr_collection = db_connection.get_collection('cdr')
-pipeline = [
-    {
-        '$project': {
-            '_id': 1,
-            'skill': 1,
-            'filename': 1
-        }
-    }
-]
-
-
-def _extract_recordings():
-    return db_connection.get_collection('asr_feeds').find(
+def _extract_recordings(collection_name):
+    return db_connection.get_collection(collection_name).find(
         {
             'status': 'pending'
         },
@@ -56,19 +42,26 @@ def _extract_recordings():
 
 
 def extract_and_load():
-    logger.info('Starting Extraction')
-    records = list(_extract_recordings())
-    logger.info(f'Fetch and processing {len(records)} records.')
+    logger.info('Starting Extraction!!!!!')
+    asr_feeds = list(_extract_recordings('asr_feeds'))
+    asr_translate_feeds = list(_extract_recordings('asr_translate_feeds'))
+    logger.info(
+        f'Fetch and processing {len(asr_feeds + asr_translate_feeds)} records.'
+    )
 
-    for data in records:
+    for data in asr_feeds:
         try:
             asr_feed_processor(
                 data['_id'],
                 data['filename'],
                 entity_recognizer
             )
-            # elif data['skill'] == '':
-            #     asr_translate_feed_processor(data['_id'], data['filename'])
+        except Exception as e:
+            logger.error(e, exc_info=True)
+
+    for data in asr_translate_feeds:
+        try:
+            asr_translate_feed_processor(data['_id'], data['filename'])
         except Exception as e:
             logger.error(e, exc_info=True)
 
@@ -81,9 +74,8 @@ def main():
     except Exception as err:
         logger.error(f'Feed upload failed with exception:{err}', exc_info=True)
 
-
-schedule.every(1).hour.do(main)
 main()
+schedule.every(1).hour.do(main)
 
 
 while True:

@@ -8,8 +8,12 @@ from logging import getLogger
 
 from asr.config import Config
 from asr.adapters.respositories.asr_feed_repository import ASRFeedRepository
+from asr.adapters.respositories.asr_translate_feed_repository import \
+    ASRTranslateFeedRespositoy
 from asr.adapters.datasources.mongo import MongoClient
 from asr.domain.entities.asr_feed import ASRFeed, ASRFeedResult
+from asr.domain.entities.asr_translate_feed import ASRTranslateFeed, \
+    ASRTranslateFeedResult
 from asr import constants
 
 
@@ -17,6 +21,28 @@ init_logging()
 Config.init_config()
 load_dotenv('schedule.env')
 logger = getLogger(__name__)
+skills = [
+    "telesales_goa",
+    "telesale_goa",
+    "telesale_bang",
+    "LSQINTERNATIONAL",
+    "LSQKCE2",
+    "LSQINTERNATIONAL",
+    "MMTBANG",
+    "goa1",
+    "goa2",
+    "goa3",
+    "offsite1",
+    "offsite2",
+    "goa1",
+    "goa2",
+    "goa3",
+    "offsite",
+    "Admin_BCC",
+    "Admin_GCC",
+    "LAQDIGITAL"
+]
+skills = [skill.lower() for skill in skills]
 
 db_connection = MongoClient.get_connection()
 timestamp = 1698330720
@@ -45,17 +71,30 @@ def extract_and_load():
         record_url = data['recordURL']
         file_name = record_url.rsplit('/', 1)[1]
         cdr_id = file_name.split('.')[0]
-
+        skill = data.get("skill")
         try:
-            asr_feeds = ASRFeedRepository(MongoClient.get_connection())
-            asr_feed = ASRFeed(
-                path.join(Config.ASR_FEED_LOCATION, file_name),
-                constants.PENDING,
-                ASRFeedResult(),
-                cdr_id,
-                data.get("skill", "")
-            )
-            asr_feeds.add(asr_feed)
+            if skill.lower() in skills:
+                asr_translate_feed_repo = ASRTranslateFeedRespositoy(
+                    MongoClient.get_connection()
+                )
+                asr_translate_feed = ASRTranslateFeed(
+                    filename=path.join(Config.ASR_FEED_LOCATION, file_name),
+                    status=constants.PENDING,
+                    result=ASRTranslateFeedResult(),
+                    cdr_id=cdr_id,
+                    skill=data.get("skill", "")
+                )
+                asr_translate_feed_repo.add(asr_translate_feed)
+            else:
+                asr_feeds = ASRFeedRepository(MongoClient.get_connection())
+                asr_feed = ASRFeed(
+                    path.join(Config.ASR_FEED_LOCATION, file_name),
+                    constants.PENDING,
+                    ASRFeedResult(),
+                    cdr_id,
+                    data.get("skill", "")
+                )
+                asr_feeds.add(asr_feed)
             cdr_collection.update_one(
                 {
                     'uuid': cdr_id
