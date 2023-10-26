@@ -64,14 +64,13 @@ def extract_and_load():
 
     for data in records:
         try:
-            if data['skill'] == 'telesales_goa':
-                asr_feed_processor(
-                    data['_id'],
-                    data['filename'],
-                    entity_recognizer
-                )
-            elif data['skill'] == '':
-                asr_translate_feed_processor(data['_id'], data['filename'])
+            asr_feed_processor(
+                data['_id'],
+                data['filename'],
+                entity_recognizer
+            )
+            # elif data['skill'] == '':
+            #     asr_translate_feed_processor(data['_id'], data['filename'])
         except Exception as e:
             logger.error(e, exc_info=True)
 
