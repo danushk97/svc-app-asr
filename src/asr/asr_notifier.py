@@ -71,30 +71,18 @@ def extract_and_load():
         record_url = data['recordURL']
         file_name = record_url.rsplit('/', 1)[1]
         cdr_id = file_name.split('.')[0]
-        skill = data.get("skill", "")
+        skill = data.get("skill", "").lower()
         try:
-            if skill.lower() in skills:
-                asr_translate_feed_repo = ASRTranslateFeedRespositoy(
-                    MongoClient.get_connection()
-                )
-                asr_translate_feed = ASRTranslateFeed(
-                    filename=path.join(Config.ASR_FEED_LOCATION, file_name),
-                    status=constants.PENDING,
-                    result=ASRTranslateFeedResult(),
-                    cdr_id=cdr_id,
-                    skill=data.get("skill", "")
-                )
-                asr_translate_feed_repo.add(asr_translate_feed)
-            else:
-                asr_feeds = ASRFeedRepository(MongoClient.get_connection())
-                asr_feed = ASRFeed(
-                    path.join(Config.ASR_FEED_LOCATION, file_name),
-                    constants.PENDING,
-                    ASRFeedResult(),
-                    cdr_id,
-                    data.get("skill", "")
-                )
-                asr_feeds.add(asr_feed)
+            asr_feeds = ASRFeedRepository(MongoClient.get_connection())
+            asr_feed = ASRFeed(
+                path.join(Config.ASR_FEED_LOCATION, file_name),
+                constants.PENDING,
+                ASRFeedResult(),
+                cdr_id,
+                skill,
+                skill not in skills
+            )
+            asr_feeds.add(asr_feed)
             cdr_collection.update_one(
                 {
                     'uuid': cdr_id
