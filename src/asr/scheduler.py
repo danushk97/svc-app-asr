@@ -44,24 +44,20 @@ def _extract_recordings(collection_name):
 def extract_and_load():
     logger.info('Starting Extraction!!!!!')
     asr_feeds = list(_extract_recordings('asr_feeds'))
-    asr_translate_feeds = list(_extract_recordings('asr_translate_feeds'))
     logger.info(
-        f'Fetch and processing {len(asr_feeds + asr_translate_feeds)} records.'
+        f'Fetch and processing {len(asr_feeds)} records.'
     )
 
     for data in asr_feeds:
         try:
-            asr_feed_processor(
-                data['_id'],
-                data['filename'],
-                entity_recognizer
-            )
-        except Exception as e:
-            logger.error(e, exc_info=True)
-
-    for data in asr_translate_feeds:
-        try:
-            asr_translate_feed_processor(data['_id'], data['filename'])
+            if data["conversation"]:
+                asr_feed_processor(
+                    data['_id'],
+                    data['filename'],
+                    entity_recognizer
+                )
+            else:
+                asr_translate_feed_processor(data['_id'], data['filename'])
         except Exception as e:
             logger.error(e, exc_info=True)
 
@@ -73,6 +69,7 @@ def main():
         extract_and_load()
     except Exception as err:
         logger.error(f'Feed upload failed with exception:{err}', exc_info=True)
+
 
 main()
 schedule.every(1).hour.do(main)

@@ -24,6 +24,7 @@ class ASRFeed(Entity):
     result: ASRFeedResult
     cdr_id: str
     skill: str
+    conversation: bool
     source: str = ''
     _id: str = field(default_factory=ObjectId)
     created_at: datetime = field(default_factory=datetime.utcnow)
