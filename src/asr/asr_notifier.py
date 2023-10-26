@@ -71,7 +71,7 @@ def extract_and_load():
         record_url = data['recordURL']
         file_name = record_url.rsplit('/', 1)[1]
         cdr_id = file_name.split('.')[0]
-        skill = data.get("skill")
+        skill = data.get("skill", "")
         try:
             if skill.lower() in skills:
                 asr_translate_feed_repo = ASRTranslateFeedRespositoy(
