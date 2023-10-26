@@ -53,7 +53,7 @@ def extract_and_load():
                 constants.PENDING,
                 ASRFeedResult(),
                 cdr_id,
-                data["skill"]
+                data.get("skill", "")
             )
             asr_feeds.add(asr_feed)
             cdr_collection.update_one(
