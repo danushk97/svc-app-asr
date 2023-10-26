@@ -69,71 +69,71 @@ paths:
           $ref: "#/components/responses/not_found"
         500:
           $ref: "#/components/responses/server_error"
-  /asr/feed:
-    post:
-      operationId: asr.entrypoints.http.asr_feed.feed_to_asr
-      tags:
-      - ASR feeds
-      summary: Feed input to ASR.
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-              required:
-                - file
-      responses:
-        200:
-          description: Successful Feed upload.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/asr_feed"
-        404:
-          $ref: "#/components/responses/not_found"
-        500:
-          $ref: "#/components/responses/server_error"
-  /asr/feed/from-urls:
-    post:
-      operationId: asr.entrypoints.http.asr_feed.feed_to_asr_from_urls
-      tags:
-      - ASR feeds
-      summary: Feed input to ASR using the target url of the input.
-      requestBody:
-        description: A list of url pointing to the input audio files.
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                audio_urls:
-                  type: array
-                  items:
-                    type: string
-              required:
-                - audio_urls
-      responses:
-        200:
-          description: Successful Feed upload.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  asr_feeds:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/asr_feed"
-        404:
-          $ref: "#/components/responses/not_found"
-        500:
-          $ref: "#/components/responses/server_error"
+  # /asr/feed:
+  #   post:
+  #     operationId: asr.entrypoints.http.asr_feed.feed_to_asr
+  #     tags:
+  #     - ASR feeds
+  #     summary: Feed input to ASR.
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         multipart/form-data:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               file:
+  #                 type: string
+  #                 format: binary
+  #             required:
+  #               - file
+  #     responses:
+  #       200:
+  #         description: Successful Feed upload.
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: "#/components/schemas/asr_feed"
+  #       404:
+  #         $ref: "#/components/responses/not_found"
+  #       500:
+  #         $ref: "#/components/responses/server_error"
+  # # /asr/feed/from-urls:
+  # #   post:
+  # #     operationId: asr.entrypoints.http.asr_feed.feed_to_asr_from_urls
+  # #     tags:
+  # #     - ASR feeds
+  # #     summary: Feed input to ASR using the target url of the input.
+  # #     requestBody:
+  # #       description: A list of url pointing to the input audio files.
+  # #       required: true
+  # #       content:
+  # #         application/json:
+  # #           schema:
+  # #             type: object
+  # #             properties:
+  # #               audio_urls:
+  # #                 type: array
+  # #                 items:
+  # #                   type: string
+  # #             required:
+  # #               - audio_urls
+  # #     responses:
+  # #       200:
+  # #         description: Successful Feed upload.
+  # #         content:
+  # #           application/json:
+  # #             schema:
+  # #               type: object
+  # #               properties:
+  # #                 asr_feeds:
+  # #                   type: array
+  # #                   items:
+  # #                     $ref: "#/components/schemas/asr_feed"
+  # #       404:
+  # #         $ref: "#/components/responses/not_found"
+  # #       500:
+  # #         $ref: "#/components/responses/server_error"
   /asr/translate/feed/{feed_id}:
     get:
       operationId: asr.entrypoints.http.asr_translate_feed.retrieve_translate_feed
@@ -175,71 +175,71 @@ paths:
           $ref: "#/components/responses/not_found"
         500:
           $ref: "#/components/responses/server_error"
-  /asr/translate/feed:
-    post:
-      operationId: asr.entrypoints.http.asr_translate_feed.feed_to_asr_translate
-      tags:
-      - ASR translate feeds
-      summary: Feed input to ASR translate.
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-              required:
-                - file
-      responses:
-        200:
-          description: Successful Feed upload.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/asr_translate_feed"
-        404:
-          $ref: "#/components/responses/not_found"
-        500:
-          $ref: "#/components/responses/server_error"
-  /asr/translate/feed/from-urls:
-    post:
-      operationId: asr.entrypoints.http.asr_translate_feed.feed_to_asr_translate_from_urls
-      tags:
-      - ASR translate feeds
-      summary: Feed input to ASR translate using the target url of the input.
-      requestBody:
-        description: A list of url pointing to the input audio files
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                audio_urls:
-                  type: array
-                  items:
-                    type: string
-              required:
-                - audio_urls
-      responses:
-        200:
-          description: Successful Feed upload.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  asr_feeds:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/asr_translate_feed"
-        404:
-          $ref: "#/components/responses/not_found"
-        500:
-          $ref: "#/components/responses/server_error"
+  # /asr/translate/feed:
+  #   post:
+  #     operationId: asr.entrypoints.http.asr_translate_feed.feed_to_asr_translate
+  #     tags:
+  #     - ASR translate feeds
+  #     summary: Feed input to ASR translate.
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         multipart/form-data:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               file:
+  #                 type: string
+  #                 format: binary
+  #             required:
+  #               - file
+  #     responses:
+  #       200:
+  #         description: Successful Feed upload.
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: "#/components/schemas/asr_translate_feed"
+  #       404:
+  #         $ref: "#/components/responses/not_found"
+  #       500:
+  #         $ref: "#/components/responses/server_error"
+  # /asr/translate/feed/from-urls:
+  #   post:
+  #     operationId: asr.entrypoints.http.asr_translate_feed.feed_to_asr_translate_from_urls
+  #     tags:
+  #     - ASR translate feeds
+  #     summary: Feed input to ASR translate using the target url of the input.
+  #     requestBody:
+  #       description: A list of url pointing to the input audio files
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               audio_urls:
+  #                 type: array
+  #                 items:
+  #                   type: string
+  #             required:
+  #               - audio_urls
+  #     responses:
+  #       200:
+  #         description: Successful Feed upload.
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 asr_feeds:
+  #                   type: array
+  #                   items:
+  #                     $ref: "#/components/schemas/asr_translate_feed"
+  #       404:
+  #         $ref: "#/components/responses/not_found"
+  #       500:
+  #         $ref: "#/components/responses/server_error"
 components:
   schemas:
     status_items:
