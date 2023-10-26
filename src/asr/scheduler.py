@@ -12,8 +12,6 @@ from nemo.collections.nlp.models import TokenClassificationModel
 from asr.config import Config
 from asr.entrypoints.feed_preocessor.asr_feed_processor import \
     asr_feed_processor
-from asr.entrypoints.feed_preocessor.asr_translate_feed_processor import \
-    asr_translate_feed_processor
 
 
 init_logging()
@@ -54,7 +52,7 @@ def _extract_recordings():
             'skill': 1,
             'filename': 1
         }
-    ).limit(100)
+    ).limit(1000)
 
 
 def extract_and_load():
@@ -84,7 +82,7 @@ def main():
         logger.error(f'Feed upload failed with exception:{err}', exc_info=True)
 
 
-schedule.every(1).day.do(main)
+schedule.every(5).hours.do(main)
 
 
 while True:
