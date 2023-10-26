@@ -36,7 +36,8 @@ def _extract_recordings(collection_name):
         {
             '_id': 1,
             'skill': 1,
-            'filename': 1
+            'filename': 1,
+            'conversation': 1
         }
     ).limit(1000)
 
