@@ -22,8 +22,12 @@ cdr_collection = None
 
 
 class ASRFeedHandler(FileSystemEventHandler):
-    def on_created(self, event):
+    def on_any_event(self, event):
+        if event.src_path and not event.src_path.endswith(".mp3"):
+            return
+
         try:
+            print(f"Incoming {event.src_path}")
             asr_feeds = ASRFeedRepository(MongoClient.get_connection())
             file_path = event.src_path
             root_path, incoming_file_name = file_path.rsplit('/', 1)
