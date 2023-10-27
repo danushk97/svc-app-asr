@@ -54,7 +54,8 @@ def _extract_recordings():
     return cdr_collection.find(
         {
             'timestamp': {'$gt': timestamp},
-            'asr_notify': {'$exists': False}
+            'asr_notify': {'$exists': False},
+            'recordURL': {'$exists': True}
         }
     )
 
@@ -65,22 +66,23 @@ def extract_and_load():
     logger.info(f'Fetch and processing {len(records)} records.')
 
     for data in records:
-        if "recordURL" not in data:
-            continue
-
         record_url = data['recordURL']
         file_name = record_url.rsplit('/', 1)[1]
         cdr_id = file_name.split('.')[0]
         skill = data.get("skill", "").lower()
+        is_conversation = skill not in skills
+
         try:
             asr_feeds = ASRFeedRepository(MongoClient.get_connection())
             asr_feed = ASRFeed(
                 path.join(Config.ASR_FEED_LOCATION, file_name),
                 constants.PENDING,
-                ASRFeedResult(),
+                ASRFeedResult() if is_conversation else ASRTranslateFeedResult(),
                 cdr_id,
                 skill,
-                skill not in skills
+                skill not in skills,
+                "english" if is_conversation else "hindi",
+                record_url
             )
             asr_feeds.add(asr_feed)
             cdr_collection.update_one(

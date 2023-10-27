@@ -31,7 +31,7 @@ class ASRFeedRepository(AbstractASRFeedRepository):
                             constants.STATUS: "$status",
                             constants.SOURCE: "$source",
                             constants.CREATED_AT: "$created_at",
-                            constants.UPDATED_AT: "$updated_at",
+                            constants.UPDATED_AT: "$updated_at"
                         }
                     }
                 }
