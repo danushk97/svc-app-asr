@@ -114,7 +114,7 @@ def main():
         logger.error(f'Feed upload failed with exception:{err}', exc_info=True)
 
 
-schedule.every(30).minutes.do(main)
+schedule.every(5).minutes.do(main)
 main()
 
 while True:
