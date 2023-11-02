@@ -73,7 +73,7 @@ def main():
 
 
 main()
-schedule.every(15).minutes.do(main)
+schedule.every(5).minute.do(main)
 
 
 while True:
