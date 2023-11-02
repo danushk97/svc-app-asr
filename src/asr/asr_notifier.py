@@ -54,8 +54,7 @@ def _extract_recordings():
     return cdr_collection.find(
         {
             'timestamp': {'$gt': timestamp},
-            'asr_notify': {'$exists': False},
-            'recordURL': {'$exists': True}
+            'asr_notify': {'$exists': False}
         }
     )
 
@@ -66,9 +65,8 @@ def extract_and_load():
     logger.info(f'Fetch and processing {len(records)} records.')
 
     for data in records:
-        record_url = data['recordURL']
-        file_name = record_url.rsplit('/', 1)[1]
-        cdr_id = file_name.split('.')[0]
+        cdr_id = data.get("uuid", "")
+        file_name = f"{cdr_id}.mp3"
         skill = data.get("skill", "").lower()
         is_conversation = skill not in skills
 
@@ -82,7 +80,7 @@ def extract_and_load():
                 skill,
                 skill not in skills,
                 "english" if is_conversation else "hindi",
-                record_url
+                data.get("recordURL")
             )
             asr_feeds.add(asr_feed)
             cdr_collection.update_one(
