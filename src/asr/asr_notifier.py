@@ -45,7 +45,7 @@ skills = [
 skills = [skill.lower() for skill in skills]
 
 db_connection = MongoClient.get_connection()
-timestamp = 1698330720
+timestamp = 1698823964
 
 cdr_collection = db_connection.get_collection('cdr')
 
