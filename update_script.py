@@ -13,7 +13,7 @@ db_connection = MongoClient(
 
 collection = db_connection.get_collection('asr_feeds')
 
-for i, data in enumerate(collection.find({})):
+for i, data in enumerate(collection.find({"conversation": False, "status": "completed"})):
     print(f'Processing record {i}')
     try:
         text = data["result"]["translation"]
