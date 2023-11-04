@@ -36,12 +36,14 @@ def asr_translate_feed_processor(feed_id: ObjectId, file_path: str):
                 'messages': []
             }
         )
-        response = response.json()
         print(
             'Emotion classifier took'
             f'{time.perf_counter() - start_emotion_perf} seconds'
         )
-        feed_result.overall_sentiment = response.get('overall_sentiment', '')
+        if response.status_code == 200:
+            response = response.json()
+            feed_result.overall_sentiment = response.get('overall_sentiment', '')
+
         asr_feeds.find_and_update_feed_result_and_status(
             feed_id, feed_result, constants.COMPLETED
         )
