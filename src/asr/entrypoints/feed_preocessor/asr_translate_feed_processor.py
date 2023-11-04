@@ -1,4 +1,5 @@
 import time
+import requests
 
 from bson import ObjectId
 
@@ -27,6 +28,20 @@ def asr_translate_feed_processor(feed_id: ObjectId, file_path: str):
             ' seconds'
         )
         feed_result.translation = translation_result['text']
+        start_emotion_perf = time.perf_counter()
+        response = requests.post(
+            'http://127.0.0.1:8000/classify',
+            json={
+                'transcript': translation_result['text'],
+                'messages': []
+            }
+        )
+        response = response.json()
+        print(
+            'Emotion classifier took'
+            f'{time.perf_counter() - start_emotion_perf} seconds'
+        )
+        feed_result.overall_sentiment = response.get('overall_sentiment', '')
         asr_feeds.find_and_update_feed_result_and_status(
             feed_id, feed_result, constants.COMPLETED
         )

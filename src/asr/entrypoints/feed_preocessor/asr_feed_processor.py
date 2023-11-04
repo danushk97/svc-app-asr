@@ -57,8 +57,7 @@ def asr_feed_processor(feed_id: ObjectId, file_path: str, entity_recognizer):
         feed_result.conversation = utils.build_conversation(
             feed_result.conversation
         )
-        feed_result.overall_sentiment = \
-            classifier_result['overall_sentiment']
+        feed_result.overall_sentiment = classifier_result['overall_sentiment']
         start_entity_perf = time.perf_counter()
         entities = entity_recognizer.add_predictions(
             [feed_result.transcript]

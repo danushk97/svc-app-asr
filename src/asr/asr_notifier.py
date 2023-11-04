@@ -8,12 +8,9 @@ from logging import getLogger
 
 from asr.config import Config
 from asr.adapters.respositories.asr_feed_repository import ASRFeedRepository
-from asr.adapters.respositories.asr_translate_feed_repository import \
-    ASRTranslateFeedRespositoy
 from asr.adapters.datasources.mongo import MongoClient
 from asr.domain.entities.asr_feed import ASRFeed, ASRFeedResult
-from asr.domain.entities.asr_translate_feed import ASRTranslateFeed, \
-    ASRTranslateFeedResult
+from asr.domain.entities.asr_translate_feed import ASRTranslateFeedResult
 from asr import constants
 
 
